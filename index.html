@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제철팏 마켓</title>
+<style>
+:root{
+  --bg:#FBF8F1;
+  --surface:#FFFFFF;
+  --surface-2:#F3EEE1;
+  --ink:#1F2A1E;
+  --muted:#6E7A66;
+  --line:#E7E1D2;
+  --accent:#3D8B4C;
+  --accent-ink:#FFFFFF;
+  --accent-2:#E4572E;
+  --gold:#C99A2E;
+  --kakao:#FEE500;
+  --kakao-ink:#3C1E1E;
+  --naver:#03C75A;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12150F;
+    --surface:#1A1F15;
+    --surface-2:#212819;
+    --ink:#ECE8DA;
+    --muted:#9CA692;
+    --line:#2B3223;
+    --accent:#6FBF73;
+    --accent-ink:#0E1A0F;
+    --accent-2:#FF8A5F;
+    --gold:#E0B655;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12150F;
+  --surface:#1A1F15;
+  --surface-2:#212819;
+  --ink:#ECE8DA;
+  --muted:#9CA692;
+  --line:#2B3223;
+  --accent:#6FBF73;
+  --accent-ink:#0E1A0F;
+  --accent-2:#FF8A5F;
+  --gold:#E0B655;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+  padding-inline:16px;
+}
+.wordmark{font-family:'Fraunces',serif;}
+
+.notice{
+  max-width:760px;margin:20px auto 8px;padding:12px 16px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+  font-size:12.5px;color:var(--muted);line-height:1.5;
+}
+.notice b{color:var(--ink);}
+
+.switcher{
+  max-width:760px;margin:14px auto 22px;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.switcher button{
+  flex:1;min-width:110px;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+  padding:10px 8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.switcher button:hover{border-color:var(--accent);}
+.switcher button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+
+.frame-wrap{max-width:430px;margin:0 auto 48px;}
+.frame{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 20px 40px -24px rgba(0,0,0,.35);
+}
+
+/* 실시간 많이 팔린 상품 사이드 패널 */
+.best-tab{
+  position:fixed;top:380px;right:max(0px, calc(50vw - 215px));
+  background:var(--ink);color:var(--bg);font-size:10.5px;font-weight:700;
+  padding:12px 7px;border-radius:8px 0 0 8px;cursor:pointer;
+  writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.04em;
+  z-index:35;border:none;
+}
+.best-panel{
+  position:fixed;top:300px;right:max(0px, calc(50vw - 215px));width:80%;max-width:300px;
+  max-height:min(480px, calc(100vh - 340px));
+  background:var(--surface);box-shadow:0 16px 36px -16px rgba(0,0,0,.35);border-radius:16px;
+  transform:translateX(120%);transition:transform .3s ease;z-index:45;
+  padding:20px 16px;overflow-y:auto;
+}
+.best-panel.open{transform:translateX(0);}
+.best-panel .bp-close{position:absolute;top:10px;right:10px;background:none;border:none;font-size:17px;cursor:pointer;color:var(--muted);}
+.best-panel h3{font-size:14.5px;font-weight:800;margin:6px 0 14px;}
+.best-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+.best-item:last-child{border-bottom:none;}
+.best-item .thumb{
+  width:56px;height:56px;border-radius:10px;flex:0 0 auto;font-size:26px;
+  display:flex;align-items:center;justify-content:center;background:var(--surface-2);
+}
+.best-item .meta{flex:1;min-width:0;}
+.best-item .meta .nm{font-size:11.5px;line-height:1.3;margin-bottom:6px;}
+.best-item .meta .pr{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;}
+.best-item .meta .pr .was{font-size:9.5px;color:var(--muted);text-decoration:line-through;}
+.best-item .meta .pr .now{font-size:12.5px;font-weight:800;}
+.best-item .meta .pr .pct{font-size:10.5px;color:var(--accent-2);font-weight:800;}
+.best-item .bag{font-size:15px;color:var(--muted);flex:0 0 auto;}
+
+/* 회원가입 혜택 사이드 패널 (좌측) */
+.join-tab{
+  position:fixed;top:380px;left:max(0px, calc(50vw - 215px));
+  background:#6FB233;color:#fff;font-size:10.5px;font-weight:700;
+  padding:12px 7px;border-radius:0 8px 8px 0;cursor:pointer;
+  writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.04em;
+  z-index:35;border:none;
+}
+.join-panel{
+  position:fixed;top:300px;left:max(0px, calc(50vw - 215px));width:80%;max-width:280px;
+  max-height:min(500px, calc(100vh - 340px));
+  background:linear-gradient(160deg,#9CD447 0%,#7BB93A 100%);color:#fff;
+  border-radius:16px;box-shadow:0 16px 36px -16px rgba(0,0,0,.35);
+  transform:translateX(-120%);transition:transform .3s ease;z-index:45;
+  padding:20px 16px;overflow-y:auto;
+}
+.join-panel.open{transform:translateX(0);}
+.join-panel .jp-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;opacity:.85;}
+.jp-eyebrow{font-size:11px;opacity:.9;margin-bottom:4px;}
+.jp-head{font-size:17px;font-weight:800;margin-bottom:16px;}
+.jp-row{
+  display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.94);color:#222;
+  border-radius:10px;padding:10px 12px;margin-bottom:9px;
+}
+.jp-num{
+  background:#1F2A1E;color:#fff;font-size:10.5px;font-weight:800;border-radius:5px;
+  padding:3px 6px;flex:0 0 auto;
+}
+.jp-row .jp-mid{flex:1;min-width:0;}
+.jp-note{font-size:8.5px;color:#888;margin-bottom:2px;}
+.jp-title{font-size:13px;font-weight:700;}
+.jp-title b{color:#4E9A2A;}
+.jp-icon{font-size:20px;flex:0 0 auto;}
+.jp-cta{
+  width:100%;margin-top:6px;background:#1F2A1E;color:#fff;border:none;border-radius:10px;
+  padding:13px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+
+/* ---------- shared bits ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+}
+.topbar .icon-btn{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--ink);background:none;border:none;cursor:pointer;position:relative;
+}
+.topbar .title{font-size:15px;font-weight:700;}
+.logo{
+  display:flex;flex-direction:column;align-items:center;line-height:1.1;
+}
+.logo .name{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--accent);}
+.logo .since{font-size:9px;letter-spacing:.06em;color:var(--muted);}
+.cart-badge{
+  position:absolute;top:2px;right:0;background:var(--accent-2);color:#fff;
+  font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;
+}
+
+.promo{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--ink);color:var(--bg);
+  font-size:12.5px;padding:9px 14px;
+}
+.promo b{color:var(--gold);}
+.promo button{background:var(--accent);color:var(--accent-ink);border:none;border-radius:7px;font-size:11.5px;font-weight:700;padding:5px 10px;cursor:pointer;}
+.promo .x{background:none;color:var(--bg);opacity:.6;font-size:14px;border:none;cursor:pointer;}
+
+.catnav{
+  display:flex;gap:16px;padding:10px 16px 12px;overflow-x:auto;
+  border-bottom:1px solid var(--line);font-size:13.5px;color:var(--muted);
+  white-space:nowrap;
+}
+.catnav span{cursor:pointer;padding-bottom:6px;}
+.catnav span.on{color:var(--ink);font-weight:700;border-bottom:2px solid var(--accent);}
+
+.hero{
+  margin:14px;padding:22px 18px;border-radius:16px;
+  background:linear-gradient(155deg,var(--accent) 0%, #2E6E3B 100%);
+  color:#fff;
+}
+.hero .eyebrow{font-size:11px;letter-spacing:.08em;opacity:.85;margin-bottom:6px;}
+.hero h1{font-size:19px;line-height:1.4;margin:0 0 10px;font-weight:800;}
+.hero p{font-size:12.5px;opacity:.9;line-height:1.6;margin:0;}
+
+/* auto-rotating hero carousel (자동 슬라이드 배너, 원본과 동일하게 1초 간격 + 좌우 슬라이드 전환) */
+.hero-carousel{position:relative;margin:14px;border-radius:16px;overflow:hidden;height:230px;}
+.hero-track{display:flex;height:100%;transition:transform .5s ease;}
+.hslide{
+  flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:20px;color:#1F1B2E;
+}
+.hslide .hs-kr{font-size:21px;font-weight:800;margin-bottom:4px;}
+.hslide .hs-en{font-size:12px;font-weight:600;opacity:.7;margin-bottom:10px;}
+.hslide .hs-tag{font-size:12.5px;opacity:.85;margin-top:2px;}
+.hslide .hs-emoji{font-size:46px;margin-top:6px;}
+.hero-dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:2;}
+.hdot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.22);cursor:pointer;transition:width .25s,background .25s;border:none;padding:0;}
+.hdot.on{background:var(--accent);width:16px;border-radius:3px;}
+
+.section{padding:18px 16px 4px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
+.section-head h2{font-size:15.5px;font-weight:800;margin:0;}
+.section-head a{font-size:12px;color:var(--muted);text-decoration:none;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.thumb{
+  position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+  font-size:56px;background:var(--fruit-bg,var(--surface-2));
+}
+.badge-ship{
+  position:absolute;top:8px;left:8px;background:var(--accent);color:var(--accent-ink);
+  font-size:9.5px;font-weight:800;line-height:1.2;text-align:center;padding:4px 6px;border-radius:6px;
+}
+.card .info{padding:10px 10px 12px;}
+.tag{font-size:10.5px;color:var(--muted);margin-bottom:3px;}
+.name{font-size:12.5px;font-weight:600;margin-bottom:6px;line-height:1.35;height:2.7em;overflow:hidden;}
+.price-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+.was{font-size:11px;color:var(--muted);text-decoration:line-through;}
+.pct{font-size:12.5px;color:var(--accent-2);font-weight:800;}
+.now{font-size:14.5px;font-weight:800;}
+.stars{margin-top:4px;font-size:10.5px;color:var(--gold);}
+
+.pick-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 6px;}
+.pick-card{
+  flex:0 0 180px;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:18px 12px 14px;background:var(--pick-bg,#EFEAF6);
+}
+.pick-card .pk-kr{font-size:14.5px;font-weight:800;margin-bottom:2px;color:#1F1B2E;}
+.pick-card .pk-en{font-size:10.5px;font-weight:600;color:#6b6478;margin-bottom:6px;}
+.pick-card .pk-tag{font-size:9.5px;color:#847d94;line-height:1.4;}
+.pick-card .pk-emoji{font-size:58px;margin:6px 0 4px;}
+.pick-card .pk-badge{
+  position:absolute;bottom:10px;right:10px;background:var(--accent);color:var(--accent-ink);
+  font-size:9px;font-weight:700;padding:4px 9px;border-radius:20px;
+}
+
+.reviews{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 4px;}
+.rcard{
+  flex:0 0 220px;background:var(--surface-2);border-radius:12px;padding:12px;font-size:11.5px;
+  color:var(--ink);line-height:1.5;
+}
+.rcard .who{margin-top:8px;font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;}
+
+.footer{padding:20px 16px 28px;font-size:11px;color:var(--muted);line-height:1.7;border-top:1px solid var(--line);margin-top:10px;}
+.footer .links{display:flex;gap:12px;margin-bottom:10px;color:var(--ink);font-weight:600;font-size:12px;}
+
+/* login / signup */
+.benefit-box{
+  margin:16px;padding:20px 16px;border-radius:16px;background:var(--ink);color:var(--bg);
+}
+:root[data-theme="dark"] .benefit-box{background:var(--surface-2);}
+.benefit-box h3{font-size:12.5px;color:var(--gold);text-align:center;margin:0 0 4px;font-weight:700;}
+.benefit-box h2{font-size:17px;text-align:center;margin:0 0 16px;font-weight:800;}
+.brow{display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid rgba(255,255,255,.12);}
+.brow:first-of-type{border-top:none;}
+.brow .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto;}
+.brow .t1{font-size:11px;opacity:.75;}
+.brow .t2{font-size:14.5px;font-weight:800;color:var(--gold);}
+
+.login-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);
+  font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;
+}
+.login-btn.kakao{background:var(--kakao);color:var(--kakao-ink);border:none;}
+.login-btn.naver{background:var(--naver);color:#fff;border:none;}
+.login-btn.email{background:var(--surface);color:var(--ink);}
+.login-foot{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted);margin:14px 0 4px;}
+.login-foot a{color:var(--muted);text-decoration:underline;}
+.login-btn.pill{border-radius:30px;}
+.social-row{display:flex;justify-content:center;gap:16px;margin-top:16px;}
+.circle-btn{width:46px;height:46px;border-radius:50%;border:none;font-size:15px;font-weight:800;cursor:pointer;color:#fff;}
+.circle-btn.naver-c{background:var(--naver);}
+.circle-btn.id-c{background:#6b6b6b;font-size:18px;}
+
+.form-block{padding:0 16px 16px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+.field input{
+  width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:13.5px;
+}
+
+/* product detail */
+.pd-hero{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:120px;background:var(--surface-2);}
+.pd-body{padding:16px;}
+.pd-tag{font-size:12px;color:var(--muted);margin-bottom:6px;}
+.pd-title{font-size:17px;font-weight:800;margin-bottom:10px;line-height:1.4;}
+.pd-price{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+.pd-price .was{font-size:13px;}
+.pd-price .pct{font-size:16px;}
+.pd-price .now{font-size:21px;}
+.pd-stars{font-size:12px;color:var(--gold);margin-bottom:16px;}
+.qty-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:16px;}
+.qty-ctrl{display:flex;align-items:center;gap:14px;}
+.qty-ctrl button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;cursor:pointer;}
+.info-list{font-size:12.5px;color:var(--muted);line-height:2;}
+.info-list li{display:flex;justify-content:space-between;list-style:none;}
+
+.sticky-bar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);background:var(--surface);
+}
+.heart{width:44px;height:44px;flex:0 0 auto;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;}
+.buy-btn{flex:1;background:var(--accent-2);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;}
+
+/* cart */
+.cart-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);}
+.cart-item .thumb{width:74px;height:74px;flex:0 0 auto;border-radius:10px;font-size:34px;}
+.cart-item .meta{flex:1;}
+.cart-item .meta .name{height:auto;font-size:13px;margin-bottom:4px;}
+.cart-item .meta .opt{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.cart-item .row{display:flex;align-items:center;justify-content:space-between;}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;}
+.stepper button{width:26px;height:26px;border:none;background:none;color:var(--ink);font-size:14px;cursor:pointer;}
+.stepper span{font-size:12.5px;width:24px;text-align:center;}
+.remove{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;align-self:flex-start;}
+
+.summary{padding:16px;font-size:13px;}
+.summary .row{display:flex;justify-content:space-between;padding:6px 0;color:var(--muted);}
+.summary .row.total{color:var(--ink);font-weight:800;font-size:15px;border-top:1px solid var(--line);margin-top:6px;padding-top:12px;}
+.checkout-btn{width:100%;background:var(--accent);color:var(--accent-ink);border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;}
+
+[hidden]{display:none!important;}
+
+/* 명절 연휴 배송안내 팝업 */
+.holiday-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;
+  background:rgba(20,20,10,.55);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;margin:0;z-index:80;box-sizing:border-box;
+}
+.holiday-card{
+  background:#F8F5E6;border-radius:18px;max-width:330px;width:100%;max-height:88vh;overflow-y:auto;
+  position:relative;box-shadow:0 24px 48px -20px rgba(0,0,0,.5);margin:auto;
+}
+.holiday-card .hc-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:20px;line-height:1;color:#333;cursor:pointer;padding:6px;}
+.hc-head{padding:28px 20px 4px;text-align:center;}
+.hc-head h2{font-size:20px;font-weight:800;color:var(--accent);margin:0 0 12px;}
+.hc-head p{font-size:11.5px;color:#555;line-height:1.7;margin:0;}
+.hc-illust{
+  background:linear-gradient(180deg,#EAF3DD 0%,#CFE6B0 100%);
+  padding:16px 10px;text-align:center;font-size:30px;letter-spacing:4px;margin-top:14px;
+}
+.hc-cal{padding:14px 16px 4px;}
+.hc-table{width:100%;border-collapse:collapse;font-size:11px;text-align:center;}
+.hc-table th{color:#8a8a7a;padding:4px 0;font-weight:600;font-size:10px;}
+.hc-table th:first-child{color:#d9463c;}
+.hc-table td{padding:7px 1px;position:relative;font-size:11.5px;color:#3a3a2e;}
+.hc-table td.holiday{background:#FBE3E0;border-radius:4px;}
+.hc-table td .d.red{color:#d9463c;font-weight:700;}
+.hc-table td .lbl{display:block;font-size:8px;color:#777;margin-top:1px;}
+.hc-table td .lbl.red{color:#d9463c;font-weight:700;}
+.hc-table td .lbl.green{color:#2f7d3c;font-weight:700;}
+.hc-note{font-size:10px;color:#8a8a7a;text-align:center;margin:6px 0 2px;}
+.hc-foot{display:flex;border-top:1px solid #e8e2c8;margin-top:10px;}
+.hc-foot button{flex:1;padding:13px 6px;font-size:12px;border:none;background:none;cursor:pointer;color:#555;}
+.hc-foot button:first-child{border-right:1px solid #e8e2c8;}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!--
+  실제 카카오 로그인 연동 안내
+  1) https://developers.kakao.com 에서 앱을 만들고 [내 애플리케이션 > 앱 키]에서 "JavaScript 키"를 복사해 아래 KAKAO_JS_KEY 에 넣으세요.
+  2) [내 애플리케이션 > 플랫폼 > Web] 에 이 파일을 실제로 열 도메인(예: http://localhost:5500)을 등록해야 합니다. file:// 로 직접 열면 동작하지 않습니다.
+  3) [카카오 로그인] 기능을 활성화하고, Redirect URI를 등록한 뒤 아래 REDIRECT_URI 에 동일하게 넣으세요.
+  4) 아래 <script src="https://t1.kakaocdn.net/kakao_js_sdk/${VERSION}/kakao.min.js" ...> 의 ${VERSION}, ${INTEGRITY_VALUE}는
+     https://developers.kakao.com/tool/download/js 에서 최신 값으로 복사해서 바꿔주세요 (버전이 자주 바뀌어 임의로 채우지 않았습니다).
+  5) 인가 코드(code) 이후 액세스 토큰 교환은 보안상 서버(백엔드)에서 처리해야 합니다 (REST API 키 필요). 이 부분은 별도로 도와드릴 수 있습니다.
+-->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js" crossorigin="anonymous"></script>
+<script>
+  var KAKAO_JS_KEY = 'dae08f5c52efcddf49be24c33a8825ba';
+  var KAKAO_REDIRECT_URI = 'http://localhost:5500/redirect'; // 카카오 개발자센터에 등록한 Redirect URI와 동일해야 함
+  try{
+    if(window.Kakao && !Kakao.isInitialized()){ Kakao.init(KAKAO_JS_KEY); }
+  }catch(e){ console.warn('Kakao SDK 초기화 실패 - 위 안내를 참고해 키를 설정하세요.', e); }
+</script>
+
+<div class="holiday-overlay" id="holiday-overlay">
+  <div class="holiday-card">
+    <button class="hc-close" id="hc-close">✕</button>
+    <div class="hc-head">
+      <h2>추석 연휴 배송안내</h2>
+      <p>연휴 기간에는 상담 업무가 중단되는 점<br>양해 부탁드리며 즐거운 명절 보내시길 바랍니다.</p>
+    </div>
+    <div class="hc-illust">🌳🚚🌳🏠</div>
+    <div class="hc-cal">
+      <table class="hc-table">
+        <thead><tr><th>SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="d">13</span></td><td><span class="d">14</span></td><td><span class="d">15</span></td>
+            <td><span class="d">16</span></td><td><span class="d">17</span></td><td><span class="d">18</span></td>
+            <td class="holiday"><span class="d red">19</span><span class="lbl red">택배휴무</span></td>
+          </tr>
+          <tr>
+            <td><span class="d">20</span><span class="lbl green">정상출고</span></td>
+            <td><span class="d">21</span></td>
+            <td><span class="d">22</span><span class="lbl">택배마감</span></td>
+            <td class="holiday"><span class="d red">23</span></td>
+            <td class="holiday"><span class="d">24</span></td>
+            <td class="holiday"><span class="d red">25</span><span class="lbl red">추석</span></td>
+            <td class="holiday"><span class="d">26</span></td>
+          </tr>
+          <tr>
+            <td><span class="d red">27</span></td>
+            <td><span class="d">28</span><span class="lbl green">배송재개</span></td>
+            <td><span class="d">29</span></td><td><span class="d">30</span></td>
+            <td></td><td></td><td></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="hc-note">추석 연휴 휴무기간 (9/23 ~ 9/27)</div>
+    </div>
+    <div class="hc-foot">
+      <button id="hc-today">오늘 하루 그만 보기</button>
+      <button id="hc-shut">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="notice">
+  <b>디자인 목업 안내</b> — 실제 바로팜스 사이트를 그대로 복제한 것이 아니라, 신선식품 커머스에서 흔히 쓰이는 구조(헤더·상품그리드·회원가입·구매)를 참고해 만든 참고용 UI 목업입니다. 브랜드명·이미지는 모두 가상의 예시입니다. 회원가입·상품·주문 정보는 로컬 테스트 DB(바로팜\db 폴더)에 저장되며, 실제 결제는 이루어지지 않습니다.
+</div>
+
+<div class="switcher">
+  <button class="active" data-view="home">🏠 홈</button>
+  <button data-view="login">👤 로그인·가입</button>
+  <button data-view="product">🍎 상품상세</button>
+  <button data-view="cart">🛒 장바구니</button>
+  <button data-href="admin.html">🔧 관리자</button>
+</div>
+
+<div class="frame-wrap">
+<div class="frame">
+
+  <!-- ============ HOME ============ -->
+  <div id="view-home">
+    <button class="join-tab" id="join-tab">회원가입 혜택</button>
+    <!-- 이미지 교체는 필요 없음: 아이콘은 이모지(🚚💳🐷)로 구성됨 -->
+    <div class="join-panel" id="join-panel">
+      <button class="jp-close" id="jp-close">✕</button>
+      <div class="jp-eyebrow">단골이 되지 않을 이유가 없어요</div>
+      <div class="jp-head">제철팏 회원 혜택</div>
+      <div class="jp-row">
+        <span class="jp-num">01</span>
+        <div class="jp-mid"><div class="jp-note">*비회원 동일 적용</div><div class="jp-title">전제품 <b>무료배송</b></div></div>
+        <span class="jp-icon">🚚</span>
+      </div>
+      <div class="jp-row">
+        <span class="jp-num">02</span>
+        <div class="jp-mid"><div class="jp-title"><b>8천원</b> 쿠폰팩</div></div>
+        <span class="jp-icon">💳</span>
+      </div>
+      <div class="jp-row">
+        <span class="jp-num">03</span>
+        <div class="jp-mid"><div class="jp-title">구매 시 <b>5%이상</b> 적립</div></div>
+        <span class="jp-icon">🐷</span>
+      </div>
+      <button class="jp-cta" id="jp-cta">👤 지금 1초 가입하기 →</button>
+    </div>
+
+    <button class="best-tab" id="best-tab">실시간 BEST</button>
+    <!-- 이미지 교체 안내: 아래 .best-item .thumb 안의 emoji를 <img src="사진경로.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"> 로 바꾸세요 -->
+    <div class="best-panel" id="best-panel">
+      <button class="bp-close" id="bp-close">✕</button>
+      <h3>실시간 많이 팔린 상품</h3>
+      <div class="best-item">
+        <div class="thumb">🍎</div>
+        <div class="meta">
+          <div class="nm">청송 홍로사과</div>
+          <div class="pr"><span class="was">33,900원</span></div>
+          <div class="pr"><span class="now">23,900원</span><span class="pct">29%</span></div>
+        </div>
+        <span class="bag">🛍️</span>
+      </div>
+      <div class="best-item">
+        <div class="thumb">🍏</div>
+        <div class="meta">
+          <div class="nm">시나노골드 사과</div>
+          <div class="pr"><span class="was">33,900원</span></div>
+          <div class="pr"><span class="now">16,900원</span><span class="pct">50%</span></div>
+        </div>
+        <span class="bag">🛍️</span>
+      </div>
+      <div class="best-item">
+        <div class="thumb">🎁</div>
+        <div class="meta">
+          <div class="nm">[고급형] 청도 반건시 수출용 천상과 선물세트</div>
+          <div class="pr"><span class="was">42,900원</span></div>
+          <div class="pr"><span class="now">35,900원</span><span class="pct">16%</span></div>
+        </div>
+        <span class="bag">🛍️</span>
+      </div>
+      <div class="best-item">
+        <div class="thumb">🍐</div>
+        <div class="meta">
+          <div class="nm">[전국유일] 상주 수출단지 국무총리상 수출용 만풍배</div>
+          <div class="pr"><span class="was">49,900원</span></div>
+          <div class="pr"><span class="now">41,900원</span><span class="pct">16%</span></div>
+        </div>
+        <span class="bag">🛍️</span>
+      </div>
+    </div>
+    <div class="promo">
+      <span>가입 시 <b>5,000원 쿠폰</b> + 최대 <b>8%</b> 적립</span>
+      <button>받기</button>
+    </div>
+    <div class="topbar">
+      <button class="icon-btn">☰</button>
+      <div class="logo"><span class="name">제철팏</span><span class="since">SINCE 2016</span></div>
+      <div style="display:flex;gap:4px;">
+        <button class="icon-btn">🔍</button>
+        <button class="icon-btn">🛍️<span class="cart-badge">3</span></button>
+      </div>
+    </div>
+    <div class="catnav">
+      <span class="on">BEST</span>
+      <span>가을 제철과일</span>
+      <span>~70% 특가</span>
+      <span>전체상품</span>
+      <span>과일·채소</span>
+      <span>수산·축산</span>
+    </div>
+
+    <!-- 이미지 교체 안내: 각 슬라이드의 .hs-emoji span을 <img src="사진경로.jpg" style="width:60%;max-height:110px;object-fit:contain;"> 로 바꾸세요 -->
+    <div class="hero-carousel" id="hero-carousel">
+      <div class="hero-track" id="hero-track">
+        <div class="hslide" style="background:#FBE7EA;">
+          <div class="hs-kr">홍로사과</div>
+          <div class="hs-en">Hongro Apple</div>
+          <span class="hs-emoji">🍎</span>
+          <div class="hs-tag">붉게 익어 더 진하고 달콤하게</div>
+        </div>
+        <div class="hslide" style="background:#EFEAF6;">
+          <div class="hs-kr">블랙킹포도</div>
+          <div class="hs-en">Black King Grape</div>
+          <span class="hs-emoji">🍇</span>
+          <div class="hs-tag">단단하고 쫀득한 탄력있는 과육</div>
+        </div>
+        <div class="hslide" style="background:#F4F1E6;">
+          <div class="hs-kr">샤인머스캣</div>
+          <div class="hs-en">Shine Muscat</div>
+          <span class="hs-emoji">🍈</span>
+          <div class="hs-tag">탱글한 식감과 싱그러운 달콤함</div>
+        </div>
+        <div class="hslide" style="background:#F4EFDF;">
+          <div class="hs-kr">만풍배</div>
+          <div class="hs-en">Pear</div>
+          <span class="hs-emoji">🍐</span>
+          <div class="hs-tag">아삭하고 촉촉한 기분 좋은 아삭함</div>
+        </div>
+      </div>
+      <div class="hero-dots">
+        <button class="hdot on" data-i="0"></button>
+        <button class="hdot" data-i="1"></button>
+        <button class="hdot" data-i="2"></button>
+        <button class="hdot" data-i="3"></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>지금 가장 잘 팔리는 상품</h2><a href="#">더보기 &gt;</a></div>
+      <!-- 이미지 교체 안내: 아래 각 .thumb 안의 이모지(🍎🍑🍇🍐)를
+           <img src="사진경로.jpg" style="width:100%;height:100%;object-fit:cover;">
+           로 바꾸면 실제 상품 사진 카드가 됩니다. (badge-ship span은 그대로 두세요) -->
+      <div class="grid">
+        <div class="card" data-id="1">
+          <div class="thumb" style="--fruit-bg:#F3E3D8;">🍎<span class="badge-ship">무료<br>배송</span></div>
+          <div class="info">
+            <div class="tag">꿀맛·단단 / 특대과</div>
+            <div class="name">청송 홍로사과 5kg</div>
+            <div class="price-row"><span class="was">33,900원</span></div>
+            <div class="price-row"><span class="pct">29%</span><span class="now">23,900원</span></div>
+            <div class="stars">★★★★★ 5.0</div>
+          </div>
+        </div>
+        <div class="card" data-id="2">
+          <div class="thumb" style="--fruit-bg:#EFE1C9;">🍑<span class="badge-ship">무료<br>배송</span></div>
+          <div class="info">
+            <div class="tag">진한 단맛 / 쫀득 식감</div>
+            <div class="name">수출용 청도 반건시</div>
+            <div class="price-row"><span class="was">25,900원</span></div>
+            <div class="price-row"><span class="pct">39%</span><span class="now">15,900원</span></div>
+            <div class="stars">★★★★★ 5.0</div>
+          </div>
+        </div>
+        <div class="card" data-id="3">
+          <div class="thumb" style="--fruit-bg:#E7DEEF;">🍇<span class="badge-ship">무료<br>배송</span></div>
+          <div class="info">
+            <div class="tag">당도폭발 / 씨없는</div>
+            <div class="name">샤인머스켓 2.5kg</div>
+            <div class="price-row"><span class="was">33,900원</span></div>
+            <div class="price-row"><span class="pct">35%</span><span class="now">21,900원</span></div>
+            <div class="stars">★★★★★ 5.0</div>
+          </div>
+        </div>
+        <div class="card" data-id="4">
+          <div class="thumb" style="--fruit-bg:#F1EBC8;">🍐</div>
+          <div class="info">
+            <div class="tag">아삭한 식감 / 균형잡힌 맛</div>
+            <div class="name">시나노골드 사과</div>
+            <div class="price-row"><span class="was">33,900원</span></div>
+            <div class="price-row"><span class="pct">50%</span><span class="now">16,900원</span></div>
+            <div class="stars">★★★★★ 5.0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>이달의 제철 PICK</h2></div>
+      <!-- 이미지 교체 안내: 각 .pk-emoji 의 이모지 span을
+           <img src="사진경로.jpg" style="width:78%;border-radius:10px;margin:6px 0 4px;">
+           로 바꾸시면 실제 상품 사진으로 교체됩니다. -->
+      <div class="pick-scroll">
+        <div class="pick-card" style="--pick-bg:#EFEAF6;">
+          <div class="pk-kr">블랙킹포도</div>
+          <div class="pk-en">Black King Grape</div>
+          <span class="pk-emoji">🍇</span>
+          <div class="pk-tag">단단하고 쫀득한 탄력있는 과육</div>
+          <span class="pk-badge">Season's Pick</span>
+        </div>
+        <div class="pick-card" style="--pick-bg:#F4F1E6;">
+          <div class="pk-kr">샤인머스캣</div>
+          <div class="pk-en">Shine Muscat</div>
+          <span class="pk-emoji">🍈</span>
+          <div class="pk-tag">탱글한 식감과 싱그러운 달콤함</div>
+          <span class="pk-badge">Season's Pick</span>
+        </div>
+        <div class="pick-card" style="--pick-bg:#F4EFDF;">
+          <div class="pk-kr">만풍배</div>
+          <div class="pk-en">Pear</div>
+          <span class="pk-emoji">🍐</span>
+          <div class="pk-tag">아삭하고 촉촉한 기분 좋은 아삭함</div>
+          <span class="pk-badge">Season's Pick</span>
+        </div>
+        <div class="pick-card" style="--pick-bg:#FBE7EA;">
+          <div class="pk-kr">홍로사과</div>
+          <div class="pk-en">Hongro Apple</div>
+          <span class="pk-emoji">🍎</span>
+          <div class="pk-tag">붉게 익어 더 진하고 달콤하게</div>
+          <span class="pk-badge">Season's Pick</span>
+        </div>
+        <div class="pick-card" style="--pick-bg:#FBE9DB;">
+          <div class="pk-kr">반건시</div>
+          <div class="pk-en">Semi-dried Persimmon</div>
+          <span class="pk-emoji">🟠</span>
+          <div class="pk-tag">겉은 쫀득, 입안 가득 퍼지는 단맛</div>
+          <span class="pk-badge">Season's Pick</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>고객 리얼 후기</h2></div>
+      <div class="reviews">
+        <div class="rcard">넘 맛있게 먹었어요, 인터넷에서 과일 사는 거 잘 안 믿었는데 이번엔 완전 성공이었어요!
+          <div class="who"><span>장** 님</span><span>2026.09.21</span></div>
+        </div>
+        <div class="rcard">포장 꼼꼼하고 좋아요. 명절 선물용으로도 손색없고 당도가 최고네요.
+          <div class="who"><span>김** 님</span><span>2026.09.14</span></div>
+        </div>
+        <div class="rcard">가격이 조금 있긴 한데 확실히 맛으로 값을 하는 것 같아요. 다음엔 다른 상품도 시도해볼게요.
+          <div class="who"><span>진** 님</span><span>2026.09.09</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="links"><span>회사소개</span><span>이용약관</span><span>개인정보처리방침</span><span>FAQ</span><a href="admin.html" id="footer-admin" style="color:inherit;">관리자</a></div>
+      예시용 상호. 제철팏(주) | 대표자. 예시홍<br>
+      사업자등록번호. 000-00-00000 (예시) | 통신판매업신고. 예시-제0000호<br>
+      주소. 예시 대구광역시 ○○구 ○○로 00 (예시 주소)<br>
+      TEL. 000-0000-0000 | MAIL. example@example.com<br>
+      © 제철팏(주). 본 화면은 디자인 참고용 목업입니다.
+    </div>
+  </div>
+
+  <!-- ============ LOGIN / SIGNUP ============ -->
+  <div id="view-login" hidden>
+    <div class="topbar">
+      <button class="icon-btn">←</button>
+      <div class="title">로그인 · 회원가입</div>
+      <div style="width:30px;"></div>
+    </div>
+
+    <div class="benefit-box">
+      <h3>단골이 되지 않을 이유가 없어요</h3>
+      <h2>회원 전용 혜택</h2>
+      <div class="brow"><span class="dot"></span><span class="t1">가입 즉시 받는</span><span class="t2">5,000원 쿠폰팩</span></div>
+      <div class="brow"><span class="dot"></span><span class="t1">구매할 때마다</span><span class="t2">최대 8% 적립</span></div>
+      <div class="brow"><span class="dot"></span><span class="t1">품질 보장</span><span class="t2">파손·부패 무료 반품</span></div>
+    </div>
+
+    <!-- 로그인 후: 마이페이지 (회원정보·주문내역은 DB에서 조회) -->
+    <div id="mypage-block" class="form-block" hidden>
+      <div class="section-head" style="margin-top:0;"><h2 id="mp-hello">마이페이지</h2></div>
+      <ul class="info-list" id="mp-info"></ul>
+      <div class="section-head"><h2>주문내역</h2></div>
+      <div id="mp-orders" style="font-size:13px;color:var(--muted);">불러오는 중...</div>
+      <button class="login-btn" id="logout-btn" style="margin-top:16px;background:var(--surface);color:var(--ink);border:1px solid var(--line);">로그아웃</button>
+    </div>
+
+    <div id="guest-block">
+    <div class="form-block" style="padding-top:4px;">
+      <button class="login-btn kakao pill" id="kakao-real-login">💬 카카오 1초 회원가입</button>
+      <div class="social-row">
+        <button class="circle-btn naver-c" id="naver-btn">N</button>
+        <button class="circle-btn id-c" id="id-login-btn" title="이메일(ID)로 로그인">🆔</button>
+      </div>
+      <div class="login-foot"><a href="#" id="go-login">이메일 로그인</a><a href="#" id="go-signup">이메일로 가입</a></div>
+    </div>
+
+    <!-- 이메일(ID) 로그인 → POST /api/login -->
+    <div id="login-block" hidden>
+      <div class="form-block" style="border-top:1px solid var(--line);padding-top:16px;">
+        <div class="section-head" style="margin-top:0;"><h2>이메일 로그인</h2></div>
+        <div class="field"><label>이메일</label><input id="li-email" type="email" placeholder="example@email.com" /></div>
+        <div class="field"><label>비밀번호</label><input id="li-pw" type="password" placeholder="비밀번호" /></div>
+        <div id="li-msg" style="font-size:12px;color:var(--accent-2);min-height:16px;margin-bottom:8px;"></div>
+        <button class="login-btn" id="li-submit" style="background:var(--accent);color:var(--accent-ink);">로그인</button>
+      </div>
+    </div>
+
+    <!-- 이메일 회원가입 → POST /api/signup (members.json 저장) -->
+    <div id="signup-block" hidden>
+      <div class="form-block" style="border-top:1px solid var(--line);padding-top:16px;">
+        <div class="section-head" style="margin-top:0;"><h2>회원가입</h2></div>
+        <div class="field"><label>이름</label><input id="su-name" placeholder="이름 입력" /></div>
+        <div class="field"><label>휴대폰번호</label><input id="su-phone" placeholder="예) 01012345678" /></div>
+        <div class="field"><label>이메일</label><input id="su-email" type="email" placeholder="example@email.com" /></div>
+        <div class="field"><label>비밀번호</label><input id="su-pw" type="password" placeholder="8자 이상 입력" /></div>
+        <div id="su-msg" style="font-size:12px;color:var(--accent-2);min-height:16px;margin-bottom:8px;"></div>
+        <button class="login-btn" id="su-submit" style="background:var(--accent);color:var(--accent-ink);">가입 완료하기</button>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ============ PRODUCT DETAIL ============ -->
+  <div id="view-product" hidden>
+    <div class="topbar">
+      <button class="icon-btn">←</button>
+      <div class="title">상품정보</div>
+      <div style="display:flex;gap:4px;">
+        <button class="icon-btn">🏠</button>
+        <button class="icon-btn">🛍️</button>
+      </div>
+    </div>
+    <!-- 이미지 교체 안내: 아래 emoji를 <img src="사진경로.jpg" style="width:70%;"> 로 바꾸세요 -->
+    <div class="pd-hero" id="pd-hero" style="background:#F3E3D8;">🍎</div>
+    <div class="pd-body">
+      <div class="pd-tag" id="pd-tag">꿀맛·단단 / 특대과 / 14~16Brix</div>
+      <div class="pd-title" id="pd-title">청송 홍로사과 (예시 상품) 5kg</div>
+      <div class="pd-price"><span class="was" id="pd-was" style="color:var(--muted);text-decoration:line-through;">33,900원</span></div>
+      <div class="pd-price"><span class="pct" id="pd-pct" style="color:var(--accent-2);font-weight:800;">29%</span><span class="now" id="pd-now" style="font-weight:800;">23,900원</span></div>
+      <div class="pd-stars">★★★★★ 5.0 (1,204)</div>
+
+      <div class="qty-row">
+        <span style="font-size:13px;color:var(--muted);">수량</span>
+        <div class="qty-ctrl">
+          <button id="qty-dec">−</button>
+          <span id="qty-val">1</span>
+          <button id="qty-inc">+</button>
+        </div>
+      </div>
+
+      <ul class="info-list">
+        <li><span>재고 (DB)</span><span id="pd-stock">-</span></li>
+        <li><span>배송비</span><span>무료배송</span></li>
+        <li><span>배송예정</span><span>결제 후 1~2일 이내 출고 (예시)</span></li>
+        <li><span>산지</span><span>예시 청송 지역 (샘플 텍스트)</span></li>
+      </ul>
+    </div>
+    <div class="sticky-bar">
+      <button class="heart">♡</button>
+      <button class="buy-btn" id="pd-add-cart" style="background:#fff;color:var(--accent-2);border:2px solid var(--accent-2);">장바구니 담기</button>
+      <button class="buy-btn" id="pd-buy-now">구매하기</button>
+    </div>
+  </div>
+
+  <!-- ============ CART ============ -->
+  <div id="view-cart" hidden>
+    <div class="topbar">
+      <button class="icon-btn">←</button>
+      <div class="title">장바구니</div>
+      <button class="icon-btn">🏠</button>
+    </div>
+
+    <!-- 장바구니 항목은 JS가 실제 담긴 상품(cart 배열)을 기준으로 이 영역에 렌더링합니다 -->
+    <div id="cart-items-container"></div>
+    <div id="cart-empty" style="padding:60px 20px;text-align:center;color:var(--muted);" hidden>장바구니가 비어 있습니다.</div>
+
+    <div class="summary">
+      <div class="row"><span>상품금액</span><span id="cart-subtotal">0원</span></div>
+      <div class="row"><span>배송비</span><span>무료</span></div>
+      <div class="row total"><span>총 결제금액</span><span id="cart-total">0원</span></div>
+    </div>
+    <div class="sticky-bar">
+      <button class="checkout-btn" id="checkout-btn">결제하기</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var views = ['home','login','product','cart'];
+  var buttons = document.querySelectorAll('.switcher button');
+  function goToView(target){
+    views.forEach(function(v){
+      document.getElementById('view-'+v).hidden = (v !== target);
+    });
+    buttons.forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view') === target);
+    });
+    window.scrollTo(0,0);
+  }
+  buttons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var href = btn.getAttribute('data-href');
+      if(href){ if(demoBlock()) return; window.location.href = href; return; }   // 🔧 관리자 탭 → 관리자 등록/로그인 페이지
+      goToView(btn.getAttribute('data-view'));
+    });
+  });
+
+  // 좌측 "지금 1초 가입하기" 버튼 → 로그인·가입 화면으로 이동
+  var jpCta = document.getElementById('jp-cta');
+  if(jpCta){
+    jpCta.addEventListener('click', function(){
+      goToView('login');
+      var jp = document.getElementById('join-panel');
+      if(jp) jp.classList.remove('open');
+    });
+  }
+
+  var kakaoRealBtn = document.getElementById('kakao-real-login');
+  if(kakaoRealBtn){
+    kakaoRealBtn.addEventListener('click', function(){
+      if(demoBlock()) return;
+      if(window.Kakao && Kakao.isInitialized && Kakao.isInitialized()){
+        Kakao.Auth.authorize({ redirectUri: KAKAO_REDIRECT_URI });
+      } else {
+        alert('카카오 로그인이 아직 설정되지 않았습니다.\n파일 상단 주석의 안내대로 JavaScript 키 / 도메인 등록 / Redirect URI를 먼저 설정해주세요.');
+      }
+    });
+  }
+
+  // 이메일 가입 / 이메일(ID) 로그인 폼 열기
+  var signupBlock = document.getElementById('signup-block');
+  var loginBlock = document.getElementById('login-block');
+  function openForm(show, hide){
+    hide.hidden = true;
+    show.hidden = false;
+    show.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  document.getElementById('go-signup').addEventListener('click', function(e){ e.preventDefault(); openForm(signupBlock, loginBlock); });
+  document.getElementById('go-login').addEventListener('click', function(e){ e.preventDefault(); openForm(loginBlock, signupBlock); });
+  document.getElementById('id-login-btn').addEventListener('click', function(){ openForm(loginBlock, signupBlock); });
+  document.getElementById('naver-btn').addEventListener('click', function(){ alert('네이버 로그인은 아직 연동되지 않았습니다. 카카오 또는 이메일로 이용해주세요.'); });
+
+  var joinTab = document.getElementById('join-tab');
+  var joinPanel = document.getElementById('join-panel');
+  var jpClose = document.getElementById('jp-close');
+  if(joinTab && joinPanel){
+    joinTab.addEventListener('click', function(){ joinPanel.classList.add('open'); });
+    if(jpClose) jpClose.addEventListener('click', function(){ joinPanel.classList.remove('open'); });
+  }
+
+  var bestTab = document.getElementById('best-tab');
+  var bestPanel = document.getElementById('best-panel');
+  var bpClose = document.getElementById('bp-close');
+  if(bestTab && bestPanel){
+    bestTab.addEventListener('click', function(){ bestPanel.classList.add('open'); });
+    if(bpClose) bpClose.addEventListener('click', function(){ bestPanel.classList.remove('open'); });
+  }
+
+  var holidayOverlay = document.getElementById('holiday-overlay');
+  if(holidayOverlay){
+    var today = new Date().toDateString();
+    var dismissed = false;
+    try{ dismissed = localStorage.getItem('holidayNoticeDismiss') === today; }catch(e){}
+    if(dismissed){ holidayOverlay.hidden = true; }
+    var hcClose = document.getElementById('hc-close');
+    var hcShut = document.getElementById('hc-shut');
+    var hcToday = document.getElementById('hc-today');
+    if(hcClose) hcClose.addEventListener('click', function(){ holidayOverlay.hidden = true; });
+    if(hcShut) hcShut.addEventListener('click', function(){ holidayOverlay.hidden = true; });
+    if(hcToday) hcToday.addEventListener('click', function(){
+      holidayOverlay.hidden = true;
+      try{ localStorage.setItem('holidayNoticeDismiss', today); }catch(e){}
+    });
+  }
+
+  var carousel = document.getElementById('hero-carousel');
+  var track = document.getElementById('hero-track');
+  if(carousel && track){
+    var slides = track.querySelectorAll('.hslide');
+    var dots = carousel.querySelectorAll('.hdot');
+    var idx = 0, timer;
+    function show(i){
+      idx = (i + slides.length) % slides.length;
+      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+      dots.forEach(function(d,n){ d.classList.toggle('on', n===idx); });
+    }
+    function start(){
+      timer = setInterval(function(){ show(idx+1); }, 1000); // 원본과 동일한 1초 간격
+    }
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){
+        clearInterval(timer);
+        show(parseInt(d.getAttribute('data-i'), 10));
+        start();
+      });
+    });
+    start();
+  }
+
+  var qtyVal = document.getElementById('qty-val');
+  var dec = document.getElementById('qty-dec');
+  var inc = document.getElementById('qty-inc');
+  var qty = 1;
+  if(qtyVal){
+    dec.addEventListener('click', function(){ qty = Math.max(1, qty-1); qtyVal.textContent = qty; });
+    inc.addEventListener('click', function(){ qty = qty+1; qtyVal.textContent = qty; });
+  }
+
+  // ============ 실제 DB(server.ps1 /api/*) 연동: 상품 / 회원 / 장바구니 / 주문 ============
+
+  // 목업 카드 색상·이모지 (실제 상품 사진으로 바꿀 때는 이 값을 참고해 <img>로 교체하세요)
+  var PRODUCT_VISUAL = {
+    1: { emoji:'🍎', bg:'#F3E3D8' },
+    2: { emoji:'🍑', bg:'#EFE1C9' },
+    3: { emoji:'🍇', bg:'#E7DEEF' },
+    4: { emoji:'🍐', bg:'#F1EBC8' }
+  };
+
+  // ---- 공통: 서버 API 호출 (로그인 세션은 서버가 준 HttpOnly 쿠키로 자동 전송) ----
+  function api(method, url, body){
+    var opt = { method: method, credentials: 'same-origin', headers: {} };
+    if(body){ opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+    return fetch(url, opt).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(data){
+        return { ok: r.ok, status: r.status, data: data };
+      });
+    });
+  }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function val(id){ return document.getElementById(id).value.trim(); }
+
+  // ---- 상품: 이름·가격·재고는 전부 DB(products.json)가 기준 ----
+  var PRODUCTS = [];
+  function findProduct(id){
+    id = parseInt(id, 10);
+    for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === id) return PRODUCTS[i]; }
+    return null;
+  }
+  function loadProducts(){
+    return api('GET', '/api/products').then(function(res){
+      if(res.ok && Array.isArray(res.data)) PRODUCTS = res.data;
+      else enterDemo();                       // 서버가 없음 (GitHub Pages 등) → 미리보기 모드
+    }).catch(function(){ enterDemo(); }).then(function(){
+      syncGridFromDb();
+      renderCart();
+      if(!document.getElementById('view-product').hidden) fillProduct(currentProductId);
+    });
+  }
+
+  // ---- 미리보기 모드: server.ps1 없이 정적 호스팅(GitHub Pages)에서 열었을 때 ----
+  //  상품 목록·상세·장바구니 화면은 아래 내장 데이터로 보여주고,
+  //  회원가입·로그인·결제·관리자는 서버가 필요하므로 안내만 띄웁니다.
+  var DEMO_MODE = false;
+  var DEMO_PRODUCTS = [
+    { id:1, name:'청송 홍로사과 5kg',  category:'사과', price:23900, original_price:33900, discount_pct:29, shipping:'무료배송', stock:120 },
+    { id:2, name:'수출용 청도 반건시',  category:'건과', price:15900, original_price:25900, discount_pct:39, shipping:'무료배송', stock:80 },
+    { id:3, name:'샤인머스켓 2.5kg',    category:'포도', price:21900, original_price:33900, discount_pct:35, shipping:'무료배송', stock:60 },
+    { id:4, name:'시나노골드 사과',     category:'사과', price:16900, original_price:33900, discount_pct:50, shipping:null,       stock:45 }
+  ];
+  function enterDemo(){
+    if(DEMO_MODE) return;
+    DEMO_MODE = true;
+    PRODUCTS = DEMO_PRODUCTS;
+    var notice = document.querySelector('.notice');
+    if(notice) notice.insertAdjacentHTML('afterbegin', '<b style="color:var(--accent-2);">미리보기 모드</b> — 서버 없이 열린 화면입니다. 상품·장바구니 화면만 확인할 수 있고, 회원가입·로그인·결제·관리자는 동작하지 않습니다.<br>');
+  }
+  function demoBlock(){
+    if(!DEMO_MODE) return false;
+    alert('지금은 미리보기 모드입니다.\n회원가입·로그인·결제·관리자 기능은 PC에서 server.ps1 을 실행한 쇼핑몰(http://localhost:5500)에서만 동작합니다.');
+    return true;
+  }
+  // ---- 상품 사진: 바로팜\product_images 폴더의 p{상품ID 3자리}.jpg (또는 .png/.webp) ----
+  // 예) 상품ID 1 → product_images/p001.jpg
+  // 사진 파일이 있으면 이모지 대신 사진을 보여주고, 없으면 이모지를 그대로 둡니다.
+  var IMG_DIR = 'product_images/';   // 상대경로 → 로컬 서버와 GitHub Pages 모두 동작
+  var IMG_EXTS = ['jpg', 'png', 'webp'];
+  function imageName(id){ return 'p' + ('00' + id).slice(-3); }
+  function paintImage(box, p){
+    if(!box || !p) return;
+    if(box.getAttribute('data-img-for') === String(p.id)) return;   // 이미 이 상품 사진이 들어가 있음
+    var badge = box.querySelector('.badge-ship');
+    var tryExt = function(i){
+      if(i >= IMG_EXTS.length) return;                               // 사진 없음 → 이모지 유지
+      var img = new Image();
+      img.alt = p.name;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      img.onload = function(){
+        box.textContent = '';
+        box.style.overflow = 'hidden';
+        box.appendChild(img);
+        if(badge) box.appendChild(badge);
+        box.setAttribute('data-img-for', String(p.id));
+      };
+      img.onerror = function(){ tryExt(i + 1); };
+      img.src = IMG_DIR + imageName(p.id) + '.' + IMG_EXTS[i];
+    };
+    tryExt(0);
+  }
+
+  // 홈 화면 상품 카드의 이름·가격을 DB 값으로 덮어쓰기
+  function syncGridFromDb(){
+    // 관리자가 추가한 상품(화면에 카드가 없는 상품)은 카드를 새로 만들어 붙임
+    var grid = document.querySelector('#view-home .grid');
+    if(grid){
+      PRODUCTS.forEach(function(p){
+        if(grid.querySelector('.card[data-id="' + p.id + '"]')) return;
+        var v = PRODUCT_VISUAL[p.id] || { emoji:'🧺', bg:'#EEE8DA' };
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-id', p.id);
+        card.innerHTML =
+          '<div class="thumb" style="--fruit-bg:' + v.bg + ';">' + v.emoji + (p.shipping ? '<span class="badge-ship">무료<br>배송</span>' : '') + '</div>' +
+          '<div class="info"><div class="tag">' + esc(p.category || '') + '</div><div class="name"></div>' +
+          '<div class="price-row"><span class="was"></span></div>' +
+          '<div class="price-row"><span class="pct"></span><span class="now"></span></div>' +
+          '<div class="stars">신상품</div></div>';
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function(){ openProduct(p.id); });
+        grid.appendChild(card);
+      });
+    }
+    document.querySelectorAll('.card[data-id]').forEach(function(card){
+      var p = findProduct(card.getAttribute('data-id'));
+      if(!p) return;
+      var el;
+      if((el = card.querySelector('.name'))) el.textContent = p.name;
+      if((el = card.querySelector('.was')))  el.textContent = formatWon(p.original_price);
+      if((el = card.querySelector('.pct')))  el.textContent = p.discount_pct + '%';
+      if((el = card.querySelector('.now')))  el.textContent = p.stock > 0 ? formatWon(p.price) : '품절';
+      card.style.opacity = p.stock > 0 ? '' : '0.5';
+      paintImage(card.querySelector('.thumb'), p);
+    });
+  }
+
+  // ---- 회원: 로그인 상태는 서버 세션(/api/me)으로 확인 ----
+  var currentUser = null;
+  function refreshMe(){
+    return api('GET', '/api/me').then(function(res){
+      currentUser = (res.ok && res.data.logged_in) ? res.data : null;
+      renderAuth();
+    }).catch(function(){ currentUser = null; renderAuth(); });
+  }
+  function infoRow(k, v){ return '<li><span>' + esc(k) + '</span><span>' + esc(v) + '</span></li>'; }
+  function renderAuth(){
+    var loginTabBtn = document.querySelector('.switcher button[data-view="login"]');
+    var guest = document.getElementById('guest-block');
+    var mypage = document.getElementById('mypage-block');
+    var benefit = document.querySelector('#view-login .benefit-box');
+    if(currentUser){
+      var name = currentUser.nickname || '회원';
+      if(loginTabBtn) loginTabBtn.textContent = '👤 ' + name + '님';
+      guest.hidden = true; mypage.hidden = false; if(benefit) benefit.hidden = true;
+      document.getElementById('mp-hello').textContent = name + '님의 마이페이지';
+      document.getElementById('mp-info').innerHTML =
+        infoRow('회원번호', currentUser.member_id) +
+        infoRow('가입방식', currentUser.provider === 'kakao' ? '카카오' : '이메일') +
+        infoRow('이메일', currentUser.email || '-') +
+        infoRow('휴대폰', currentUser.phone || '-') +
+        infoRow('가입일', currentUser.joined_at);
+      loadMyOrders();
+    } else {
+      if(loginTabBtn) loginTabBtn.textContent = '👤 로그인·가입';
+      guest.hidden = false; mypage.hidden = true; if(benefit) benefit.hidden = false;
+    }
+  }
+  function loadMyOrders(){
+    var box = document.getElementById('mp-orders');
+    api('GET', '/api/orders').then(function(res){
+      if(!res.ok){ box.textContent = res.data.error || '주문내역을 불러오지 못했습니다.'; return; }
+      var orders = Array.isArray(res.data) ? res.data : [];
+      if(!orders.length){ box.textContent = '아직 주문내역이 없습니다.'; return; }
+      box.innerHTML = orders.map(function(o){
+        var its = Array.isArray(o.items) ? o.items : (o.items ? [o.items] : []);
+        var names = its.map(function(it){ return esc(it.name) + ' × ' + it.qty; }).join(', ');
+        return '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;color:var(--ink);">' +
+          '<div style="display:flex;justify-content:space-between;font-weight:700;"><span>주문 #' + o.order_id + '</span><span>' + formatWon(o.total) + '</span></div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:4px;">' + names + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);margin-top:4px;">' + esc(o.created_at) + ' · ' + esc(o.status) + '</div></div>';
+      }).join('');
+    });
+  }
+
+  // 이메일 회원가입 → members.json 저장
+  document.getElementById('su-submit').addEventListener('click', function(){
+    if(demoBlock()) return;
+    var msg = document.getElementById('su-msg'); msg.textContent = '';
+    api('POST', '/api/signup', { name: val('su-name'), phone: val('su-phone'), email: val('su-email'), password: document.getElementById('su-pw').value })
+      .then(function(res){
+        if(!res.ok){ msg.textContent = res.data.error || '가입에 실패했습니다.'; return; }
+        alert(res.data.nickname + '님, 회원가입이 완료되었습니다! (회원번호 ' + res.data.member_id + ')');
+        return refreshMe();
+      }).catch(function(){ msg.textContent = '서버에 연결할 수 없습니다. server.ps1 실행 여부를 확인하세요.'; });
+  });
+  // 이메일 로그인
+  document.getElementById('li-submit').addEventListener('click', function(){
+    if(demoBlock()) return;
+    var msg = document.getElementById('li-msg'); msg.textContent = '';
+    api('POST', '/api/login', { email: val('li-email'), password: document.getElementById('li-pw').value })
+      .then(function(res){
+        if(!res.ok){ msg.textContent = res.data.error || '로그인에 실패했습니다.'; return; }
+        return refreshMe();
+      }).catch(function(){ msg.textContent = '서버에 연결할 수 없습니다. server.ps1 실행 여부를 확인하세요.'; });
+  });
+  // 로그아웃
+  document.getElementById('logout-btn').addEventListener('click', function(){
+    api('POST', '/api/logout').then(function(){ currentUser = null; renderAuth(); });
+  });
+
+  // ---- 장바구니 (localStorage에 저장 → 새로고침해도 유지) ----
+  var cart = [];
+  try{ cart = JSON.parse(localStorage.getItem('baro_cart') || '[]'); }catch(e){ cart = []; }
+  function saveCart(){ try{ localStorage.setItem('baro_cart', JSON.stringify(cart)); }catch(e){} }
+
+  // 장바구니 담기 (DB 재고 초과 시 거부)
+  function addToCart(productId, addQty){
+    productId = parseInt(productId, 10);
+    var prod = findProduct(productId);
+    if(!prod){ alert('상품 정보를 DB에서 불러오지 못했습니다. 서버 실행 여부를 확인하세요.'); return false; }
+    var line = null;
+    for(var i=0;i<cart.length;i++){ if(cart[i].product_id === productId){ line = cart[i]; break; } }
+    var already = line ? line.qty : 0;
+    if(already + addQty > prod.stock){
+      alert('재고가 부족합니다. (DB 남은 재고 ' + prod.stock + '개, 장바구니 ' + already + '개)');
+      return false;
+    }
+    if(line){ line.qty += addQty; } else { cart.push({ product_id: productId, qty: addQty }); }
+    saveCart();
+    renderCart();
+    return true;
+  }
+
+  function formatWon(n){ return n.toLocaleString('ko-KR') + '원'; }
+
+  function renderCart(){
+    var container = document.getElementById('cart-items-container');
+    var emptyMsg = document.getElementById('cart-empty');
+    var subtotalEl = document.getElementById('cart-subtotal');
+    var totalEl = document.getElementById('cart-total');
+    if(!container) return;
+
+    container.innerHTML = '';
+    var subtotal = 0;
+
+    if(cart.length === 0){
+      if(emptyMsg) emptyMsg.hidden = false;
+    } else {
+      if(emptyMsg) emptyMsg.hidden = true;
+      cart.forEach(function(line){
+        var prod = findProduct(line.product_id);
+        if(!prod) return;
+        var visual = PRODUCT_VISUAL[prod.id] || { emoji:'🛒', bg:'#eee' };
+        var lineTotal = prod.price * line.qty;
+        subtotal += lineTotal;
+
+        var item = document.createElement('div');
+        item.className = 'cart-item';
+        item.innerHTML =
+          '<div class="thumb" style="width:74px;height:74px;border-radius:10px;background:' + visual.bg + ';display:flex;align-items:center;justify-content:center;">' + visual.emoji + '</div>' +
+          '<div class="meta">' +
+            '<div class="name">' + esc(prod.name) + '</div>' +
+            '<div class="opt">단가 ' + formatWon(prod.price) + ' · 재고 ' + prod.stock + '개 (DB)</div>' +
+            '<div class="row">' +
+              '<div class="stepper"><button class="cart-dec">−</button><span>' + line.qty + '</span><button class="cart-inc">+</button></div>' +
+              '<span style="font-weight:700;font-size:13px;">' + formatWon(lineTotal) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<button class="remove">×</button>';
+
+        item.querySelector('.cart-dec').addEventListener('click', function(){
+          line.qty = Math.max(1, line.qty - 1); saveCart(); renderCart();
+        });
+        item.querySelector('.cart-inc').addEventListener('click', function(){
+          if(line.qty + 1 > prod.stock){ alert('재고가 부족합니다. (DB 남은 재고 ' + prod.stock + '개)'); return; }
+          line.qty += 1; saveCart(); renderCart();
+        });
+        item.querySelector('.remove').addEventListener('click', function(){
+          cart = cart.filter(function(l){ return l.product_id !== line.product_id; });
+          saveCart(); renderCart();
+        });
+
+        paintImage(item.querySelector('.thumb'), prod);
+        container.appendChild(item);
+      });
+    }
+
+    if(subtotalEl) subtotalEl.textContent = formatWon(subtotal);
+    if(totalEl) totalEl.textContent = formatWon(subtotal);
+  }
+  renderCart();
+
+  // ---- 상품 상세 화면: 클릭한 상품 데이터로 채우기 ----
+  var currentProductId = 1;
+  function openProduct(id){
+    currentProductId = parseInt(id, 10);
+    qty = 1;
+    if(qtyVal) qtyVal.textContent = '1';
+    fillProduct(currentProductId);
+    goToView('product');
+  }
+  function fillProduct(id){
+    var prod = findProduct(id);
+    if(!prod) return;
+    var stockEl = document.getElementById('pd-stock');
+    if(stockEl) stockEl.textContent = prod.stock > 0 ? prod.stock + '개 남음' : '품절';
+
+    var visual = PRODUCT_VISUAL[prod.id] || { emoji:'🛒', bg:'#eee' };
+    var heroEl = document.getElementById('pd-hero');
+    var tagEl = document.getElementById('pd-tag');
+    var titleEl = document.getElementById('pd-title');
+    var wasEl = document.getElementById('pd-was');
+    var pctEl = document.getElementById('pd-pct');
+    var nowEl = document.getElementById('pd-now');
+    if(heroEl){
+      heroEl.textContent = visual.emoji; heroEl.style.background = visual.bg;
+      heroEl.removeAttribute('data-img-for');
+      paintImage(heroEl, prod);
+    }
+    if(tagEl) tagEl.textContent = prod.category || '';
+    if(titleEl) titleEl.textContent = prod.name;
+    if(wasEl) wasEl.textContent = formatWon(prod.original_price);
+    if(pctEl) pctEl.textContent = (prod.discount_pct || 0) + '%';
+    if(nowEl) nowEl.textContent = formatWon(prod.price);
+  }
+
+  // 그리드 상품 카드 클릭 → 상품 상세로 이동
+  document.querySelectorAll('.card[data-id]').forEach(function(card){
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', function(){ openProduct(card.getAttribute('data-id')); });
+  });
+
+  // 상품 상세: 장바구니 담기 / 구매하기
+  var pdAddCart = document.getElementById('pd-add-cart');
+  var pdBuyNow = document.getElementById('pd-buy-now');
+  if(pdAddCart){
+    pdAddCart.addEventListener('click', function(){
+      if(addToCart(currentProductId, qty)) alert('장바구니에 담았습니다.');
+    });
+  }
+  if(pdBuyNow){
+    pdBuyNow.addEventListener('click', function(){
+      if(addToCart(currentProductId, qty)) goToView('cart');
+    });
+  }
+
+  // ---- 결제하기: 실제 /api/orders 로 주문 생성 ----
+  var checkoutBtn = document.getElementById('checkout-btn');
+  if(checkoutBtn){
+    checkoutBtn.addEventListener('click', function(){
+      if(demoBlock()) return;
+      if(cart.length === 0){
+        alert('장바구니가 비어 있습니다.');
+        return;
+      }
+      if(!currentUser){
+        alert('로그인이 필요합니다. 카카오 또는 이메일로 로그인 후 다시 시도해주세요.');
+        goToView('login');
+        return;
+      }
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = '결제 처리 중...';
+      // 상품ID·수량만 보냄 → 가격·합계·재고 검증은 서버가 DB 기준으로 계산
+      api('POST', '/api/orders', {
+        items: cart.map(function(l){ return { product_id: l.product_id, qty: l.qty }; })
+      }).then(function(res){
+        if(res.status === 401){ currentUser = null; renderAuth(); alert('로그인이 만료되었습니다. 다시 로그인해주세요.'); goToView('login'); return; }
+        if(!res.ok){ alert(res.data.error || '주문에 실패했습니다.'); loadProducts(); return; }
+        var order = res.data;
+        alert('주문이 완료되었습니다!\n주문번호: ' + order.order_id + '\n결제금액(DB 가격 기준): ' + formatWon(order.total));
+        cart = [];
+        saveCart();
+        loadProducts();          // 차감된 재고 다시 불러오기
+        goToView('login');       // 마이페이지에서 주문내역 확인
+        loadMyOrders();
+      }).catch(function(){
+        alert('주문 처리 중 오류가 발생했습니다. 서버(server.ps1)가 실행 중인지 확인해주세요.');
+      }).finally(function(){
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = '결제하기';
+      });
+    });
+  }
+
+  var footerAdmin = document.getElementById('footer-admin');
+  if(footerAdmin) footerAdmin.addEventListener('click', function(e){ if(demoBlock()) e.preventDefault(); });
+
+  // 시작 시 DB에서 상품·로그인 상태 불러오기
+  loadProducts();
+  refreshMe();
+})();
+</script>
